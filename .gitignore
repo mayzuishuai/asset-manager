@@ -1,0 +1,41 @@
+# Build artifacts
+/target/
+/dist/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Tauri
+src-tauri/target/
+
+# Database
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Logs
+*.log
+logs/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# User data (development)
+data/
+user_data/
