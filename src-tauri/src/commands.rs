@@ -2,8 +2,8 @@
 
 use crate::AppState;
 use asset_manager_core::{
+    asset::{Asset, AssetSummary, AssetType, Currency},
     plugin::PluginEvent,
-    Asset, AssetSummary, AssetType, Currency,
 };
 use serde::{Deserialize, Serialize};
 use tauri::State;

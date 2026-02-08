@@ -20,6 +20,10 @@ pnpm-lock.yaml
 
 # Tauri
 src-tauri/target/
+src-tauri/gen/
+
+# Frontend build
+ui/dist/
 
 # Database
 *.db

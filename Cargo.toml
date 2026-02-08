@@ -21,7 +21,7 @@ anyhow = "1.0"
 thiserror = "1.0"
 
 # Lua plugin system
-mlua = { version = "0.10", features = ["lua54", "vendored", "serialize", "async"] }
+mlua = { version = "0.10", features = ["lua54", "vendored", "serialize", "async", "send"] }
 
 # Local storage
 rusqlite = { version = "0.32", features = ["bundled"] }

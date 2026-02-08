@@ -26,6 +26,8 @@ tokio.workspace = true
 anyhow.workspace = true
 tracing.workspace = true
 tracing-subscriber.workspace = true
+chrono.workspace = true
+uuid.workspace = true
 
 [features]
 default = ["custom-protocol"]
