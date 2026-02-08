@@ -3,7 +3,7 @@
 //! 提供资产管理的核心功能：
 //! - 资产模型定义
 //! - Lua 插件系统
-//! - SQLite 本地存储
+//! - JSON 本地存储
 
 pub mod asset;
 pub mod plugin;
@@ -16,7 +16,7 @@ pub use storage::Database;
 /// 应用程序配置
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct AppConfig {
-    /// 数据库文件路径
+    /// 数据文件路径
     pub db_path: String,
     /// 插件目录路径
     pub plugins_dir: String,
@@ -27,7 +27,7 @@ pub struct AppConfig {
 impl Default for AppConfig {
     fn default() -> Self {
         Self {
-            db_path: "data/assets.db".to_string(),
+            db_path: "data/assets.json".to_string(),
             plugins_dir: "plugins".to_string(),
             debug: false,
         }

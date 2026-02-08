@@ -6,7 +6,7 @@ members = [
 ]
 
 [workspace.package]
-version = "0.1.0"
+version = "0.1.4"
 edition = "2021"
 license = "MIT"
 authors = ["mayzuishuai"]
@@ -22,9 +22,6 @@ thiserror = "1.0"
 
 # Lua plugin system
 mlua = { version = "0.10", features = ["lua54", "vendored", "serialize", "async", "send"] }
-
-# Local storage
-rusqlite = { version = "0.32", features = ["bundled"] }
 
 # Logging
 tracing = "0.1"

@@ -28,7 +28,7 @@ fn main() {
     // 加载配置
     let config = AppConfig::default();
 
-    // 初始化数据库
+    // 初始化 JSON 存储
     let db = Database::open(&config.db_path).expect("Failed to open database");
 
     // 初始化插件管理器

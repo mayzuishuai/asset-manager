@@ -57,6 +57,7 @@ pub fn get_asset(state: State<'_, AppState>, id: String) -> Result<Option<Asset>
     db.get_asset(uuid).map_err(|e| e.to_string())
 }
 
+
 /// 创建资产
 #[tauri::command]
 pub fn create_asset(
@@ -83,7 +84,7 @@ pub fn create_asset(
 
     // 保存到数据库
     {
-        let db = state.db.lock().map_err(|e| e.to_string())?;
+        let mut db = state.db.lock().map_err(|e| e.to_string())?;
         db.create_asset(&asset).map_err(|e| e.to_string())?;
     }
 
@@ -104,7 +105,7 @@ pub fn update_asset(
 ) -> Result<Asset, String> {
     let uuid = Uuid::parse_str(&request.id).map_err(|e| e.to_string())?;
 
-    let db = state.db.lock().map_err(|e| e.to_string())?;
+    let mut db = state.db.lock().map_err(|e| e.to_string())?;
     
     let mut asset = db
         .get_asset(uuid)
@@ -142,7 +143,7 @@ pub fn delete_asset(state: State<'_, AppState>, id: String) -> Result<(), String
     let uuid = Uuid::parse_str(&id).map_err(|e| e.to_string())?;
 
     {
-        let db = state.db.lock().map_err(|e| e.to_string())?;
+        let mut db = state.db.lock().map_err(|e| e.to_string())?;
         db.delete_asset(uuid).map_err(|e| e.to_string())?;
     }
 

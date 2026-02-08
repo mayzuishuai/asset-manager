@@ -1,15 +1,12 @@
 //! 本地存储模块
 
-mod sqlite;
+mod json;
 
-pub use sqlite::Database;
+pub use json::Database;
 
 /// 存储错误
 #[derive(Debug, thiserror::Error)]
 pub enum StorageError {
-    #[error("Database error: {0}")]
-    DatabaseError(#[from] rusqlite::Error),
-    
     #[error("Serialization error: {0}")]
     SerializationError(#[from] serde_json::Error),
     
