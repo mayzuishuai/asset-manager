@@ -6,6 +6,10 @@ echo   资产管理器 - Asset Manager
 echo ========================================
 echo.
 
+:: 确保 Cargo 和 Node 在 PATH 中
+set "PATH=%USERPROFILE%\.cargo\bin;%PATH%"
+set "PATH=%ProgramFiles%\nodejs;%PATH%"
+
 :: 检查 cargo
 where cargo >nul 2>nul
 if %ERRORLEVEL% NEQ 0 (

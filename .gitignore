@@ -21,9 +21,12 @@ pnpm-lock.yaml
 # Tauri
 src-tauri/target/
 src-tauri/gen/
+src-tauri/data/
+src-tauri/plugins/
 
 # Frontend build
 ui/dist/
+ui/node_modules/
 
 # Database
 *.db

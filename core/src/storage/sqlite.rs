@@ -1,7 +1,7 @@
 //! SQLite 数据库实现
 
 use super::StorageError;
-use crate::asset::{Asset, AssetSummary, AssetTransaction, AssetType, Currency, TransactionType};
+use crate::asset::{Asset, AssetSummary, AssetTransaction, AssetType, TransactionType};
 use chrono::{DateTime, Utc};
 use rusqlite::{params, Connection, OptionalExtension};
 use std::fs;

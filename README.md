@@ -52,20 +52,29 @@ cd ui && npm install && cd ..
 # 2. 安装 Tauri CLI（如未安装）
 cargo install tauri-cli
 
-# 3. 开发模式运行（自动热重载）
+# 3. 开发模式运行（前端自动热重载）
 cargo tauri dev
 ```
+
+> **Windows 用户提示**：如果终端提示 `cargo` 未找到，需要先刷新 PATH 或重启终端。
+> 也可直接使用项目根目录的 `run.bat` 一键启动。
 
 ### 构建发布版本
 
 ```bash
-# 构建可执行文件（输出到 src-tauri/target/release/bundle/）
+# 构建可执行文件
 cargo tauri build
+# 输出位置：
+#   可执行文件: target/release/asset-manager.exe
+#   安装包:     target/release/bundle/nsis/  (Windows 安装程序)
+#   MSI 包:     target/release/bundle/msi/   (Windows MSI 安装包)
 ```
+
+> **注意**：首次构建需要编译所有依赖（约 500+ crate），耗时较长（5-15 分钟）。后续增量构建会快很多。
 
 ### 一键启动（推荐）
 
-Windows 用户双击项目根目录的 `run.bat` 即可启动应用。
+Windows 用户双击项目根目录的 `run.bat` 即可启动开发模式。
 
 ## 功能说明
 
