@@ -69,7 +69,7 @@ pub struct Asset {
     pub name: String,
     /// 资产类型
     pub asset_type: AssetType,
-    /// 当前价值
+    /// 价值
     pub value: f64,
     /// 货币类型
     pub currency: Currency,

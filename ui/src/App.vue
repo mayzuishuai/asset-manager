@@ -12,6 +12,12 @@ const loading = ref(false)
 const currentView = ref('dashboard')  // dashboard, assets, plugins, add
 const searchQuery = ref('')
 const showAddModal = ref(false)
+const selectedTags = ref([])
+const tagInput = ref('')
+const tagInputFocused = ref(false)
+const tagInputRef = ref(null)
+const tagLibraries = ref({})
+let tagBlurTimer = null
 
 // 新资产表单
 const newAsset = ref({
@@ -20,7 +26,7 @@ const newAsset = ref({
   value: 0,
   currency: 'CNY',
   description: '',
-  tags: ''
+  tags: []
 })
 
 // 资产类型映射
@@ -57,6 +63,24 @@ const filteredAssets = computed(() => {
   )
 })
 
+const currentTagLibrary = computed(() => {
+  const typeKey = newAsset.value.asset_type
+  return tagLibraries.value[typeKey] || { tags: [], recents: [] }
+})
+
+const filteredTagSuggestions = computed(() => {
+  const query = tagInput.value.trim().toLowerCase()
+  const library = currentTagLibrary.value
+  const baseList = query
+    ? library.tags.filter(tag => tag.toLowerCase().includes(query))
+    : library.recents
+  return baseList.filter(tag => !selectedTags.value.includes(tag)).slice(0, 8)
+})
+
+const showTagDropdown = computed(() => {
+  return tagInputFocused.value && filteredTagSuggestions.value.length > 0
+})
+
 // API 调用
 async function loadAssets() {
   if (!invoke) return
@@ -64,6 +88,7 @@ async function loadAssets() {
   try {
     assets.value = await invoke('get_assets')
     summary.value = await invoke('get_summary')
+    mergeTagLibrariesFromAssets()
   } catch (e) {
     console.error('Failed to load assets:', e)
   } finally {
@@ -83,10 +108,6 @@ async function loadPlugins() {
 async function createAsset() {
   if (!invoke || !newAsset.value.name) return
   try {
-    const tags = newAsset.value.tags 
-      ? newAsset.value.tags.split(',').map(t => t.trim()).filter(t => t)
-      : []
-    
     await invoke('create_asset', {
       request: {
         name: newAsset.value.name,
@@ -94,12 +115,14 @@ async function createAsset() {
         value: parseFloat(newAsset.value.value) || 0,
         currency: newAsset.value.currency,
         description: newAsset.value.description || null,
-        tags: tags.length > 0 ? tags : null
+        tags: selectedTags.value.length > 0 ? selectedTags.value : null
       }
     })
     
     // 重置表单
-    newAsset.value = { name: '', asset_type: 'cash', value: 0, currency: 'CNY', description: '', tags: '' }
+    newAsset.value = { name: '', asset_type: 'cash', value: 0, currency: 'CNY', description: '', tags: [] }
+    selectedTags.value = []
+    tagInput.value = ''
     showAddModal.value = false
     await loadAssets()
   } catch (e) {
@@ -140,6 +163,104 @@ function getAssetTypeName(type) {
   }
   const key = typeof type === 'string' ? type.toLowerCase() : 'other'
   return assetTypes[key] || type
+}
+
+function getAssetTypeKey(type) {
+  if (typeof type === 'string') return type
+  if (type && type.Other) return 'other'
+  return 'other'
+}
+
+function ensureTagLibrary(typeKey) {
+  if (!tagLibraries.value[typeKey]) {
+    tagLibraries.value[typeKey] = { tags: [], recents: [] }
+  }
+}
+
+function normalizeTag(tag) {
+  if (!tag) return ''
+  return tag.toString().trim()
+}
+
+function addTagToLibrary(typeKey, tag, makeRecent = false) {
+  const cleanTag = normalizeTag(tag)
+  if (!cleanTag) return
+  ensureTagLibrary(typeKey)
+  const library = tagLibraries.value[typeKey]
+  if (!library.tags.includes(cleanTag)) {
+    library.tags.push(cleanTag)
+  }
+  if (makeRecent) {
+    library.recents = library.recents.filter(item => item !== cleanTag)
+    library.recents.unshift(cleanTag)
+    library.recents = library.recents.slice(0, 8)
+  }
+}
+
+function mergeTagLibrariesFromAssets() {
+  assets.value.forEach(asset => {
+    const typeKey = getAssetTypeKey(asset.asset_type)
+    const tags = Array.isArray(asset.tags) ? asset.tags : []
+    ensureTagLibrary(typeKey)
+    const allowRecent = tagLibraries.value[typeKey].recents.length === 0
+    tags.forEach(tag => addTagToLibrary(typeKey, tag, allowRecent))
+  })
+}
+
+function focusTagInput() {
+  tagInputRef.value?.focus()
+}
+
+function handleTagInputFocus() {
+  if (tagBlurTimer) {
+    clearTimeout(tagBlurTimer)
+    tagBlurTimer = null
+  }
+  tagInputFocused.value = true
+}
+
+function handleTagInputBlur() {
+  if (tagBlurTimer) {
+    clearTimeout(tagBlurTimer)
+  }
+  tagBlurTimer = setTimeout(() => {
+    tagInputFocused.value = false
+    commitTagInput()
+  }, 120)
+}
+
+function addTag(tag) {
+  const cleanTag = normalizeTag(tag)
+  if (!cleanTag || selectedTags.value.includes(cleanTag)) return
+  selectedTags.value.push(cleanTag)
+  addTagToLibrary(newAsset.value.asset_type, cleanTag, true)
+}
+
+function removeTag(tag) {
+  selectedTags.value = selectedTags.value.filter(item => item !== tag)
+}
+
+function commitTagInput() {
+  if (!tagInput.value) return
+  addTag(tagInput.value)
+  tagInput.value = ''
+}
+
+function selectTag(tag) {
+  addTag(tag)
+  tagInput.value = ''
+  focusTagInput()
+}
+
+function handleTagInputKeydown(event) {
+  if (event.key === 'Enter') {
+    event.preventDefault()
+    commitTagInput()
+    return
+  }
+  if (event.key === 'Backspace' && !tagInput.value && selectedTags.value.length > 0) {
+    removeTag(selectedTags.value[selectedTags.value.length - 1])
+  }
 }
 
 onMounted(() => {
@@ -296,7 +417,7 @@ onMounted(() => {
           </div>
           
           <div class="form-group">
-            <label>当前价值</label>
+            <label>价值</label>
             <input v-model.number="newAsset.value" type="number" step="0.01" min="0" placeholder="0.00" />
           </div>
           
@@ -306,8 +427,33 @@ onMounted(() => {
           </div>
           
           <div class="form-group">
-            <label>标签 (逗号分隔)</label>
-            <input v-model="newAsset.tags" type="text" placeholder="投资, 储蓄, A股" />
+            <label>标签</label>
+            <div class="tag-input-wrapper">
+              <div class="tag-input" @click="focusTagInput">
+                <span v-for="tag in selectedTags" :key="tag" class="tag-chip">
+                  {{ tag }}
+                  <button type="button" class="tag-remove" @click.stop="removeTag(tag)">×</button>
+                </span>
+                <input
+                  ref="tagInputRef"
+                  v-model="tagInput"
+                  type="text"
+                  placeholder="输入标签，回车确认"
+                  @focus="handleTagInputFocus"
+                  @blur="handleTagInputBlur"
+                  @keydown="handleTagInputKeydown"
+                />
+              </div>
+              <ul v-if="showTagDropdown" class="tag-dropdown">
+                <li
+                  v-for="tag in filteredTagSuggestions"
+                  :key="tag"
+                  @mousedown.prevent="selectTag(tag)"
+                >
+                  {{ tag }}
+                </li>
+              </ul>
+            </div>
           </div>
           
           <div class="form-actions">
