@@ -479,16 +479,23 @@ onMounted(() => {
     </div>
 
     <!-- 删除确认模态框 -->
-    <div v-if="showDeleteModal" class="modal-overlay" @click.self="cancelDeleteAsset">
-      <div class="modal">
-        <h2>确认删除</h2>
-        <p>
-          即将删除资产
-          <strong v-if="pendingDeleteAsset">{{ pendingDeleteAsset.name }}</strong>
-          ，此操作不可恢复。
-        </p>
-        <div class="form-actions">
-          <button type="button" class="btn" @click="cancelDeleteAsset">取消</button>
+    <div v-if="showDeleteModal" class="modal-overlay modal-overlay--danger" @click.self="cancelDeleteAsset">
+      <div class="modal modal-danger" role="dialog" aria-modal="true" aria-labelledby="delete-title">
+        <div class="modal-danger__title-row">
+          <div class="modal-danger__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 8v5" />
+              <path d="M12 16h.01" />
+              <circle cx="12" cy="12" r="9" />
+            </svg>
+          </div>
+          <h2 id="delete-title">确认删除</h2>
+        </div>
+        <div class="modal-danger__body">
+          <p>即将删除资产<span v-if="pendingDeleteAsset" class="modal-danger__asset">{{ pendingDeleteAsset.name }}</span>，此操作不可恢复。</p>
+        </div>
+        <div class="modal-danger__actions">
+          <button type="button" class="btn btn-outline" @click="cancelDeleteAsset">取消</button>
           <button type="button" class="btn btn-danger" @click="confirmDeleteAsset">确认删除</button>
         </div>
       </div>

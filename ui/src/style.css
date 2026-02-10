@@ -11,7 +11,8 @@
   --primary-light: #6366f1;
   --primary-dark: #4338ca;
   --success: #10b981;
-  --danger: #ef4444;
+  --danger: #dc2626;
+  --danger-dark: #b91c1c;
   --warning: #f59e0b;
   --bg: #f8fafc;
   --bg-dark: #1e293b;
@@ -242,6 +243,16 @@ h3 {
   color: white;
 }
 
+.btn-danger:hover {
+  background: var(--danger-dark);
+}
+
+.btn-outline {
+  background: #ffffff;
+  color: #374151;
+  border: 1px solid #d1d5db;
+}
+
 .btn-sm {
   padding: 6px 12px;
   font-size: 0.75rem;
@@ -419,6 +430,8 @@ input:checked + .slider:before {
   right: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -434,6 +447,71 @@ input:checked + .slider:before {
   max-height: 90vh;
   overflow-y: auto;
   box-shadow: var(--shadow-lg);
+}
+
+.modal-danger {
+  width: 480px;
+  max-width: calc(100% - 32px);
+  padding: 32px;
+  border-radius: 12px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+}
+
+/* Title row: icon + title on the same line, vertically centered */
+.modal-danger__title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.modal-danger__icon {
+  width: 28px;
+  height: 28px;
+  color: var(--danger);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.modal-danger .modal-danger__title-row h2 {
+  margin: 0;
+  padding: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1;
+}
+
+/* Body text */
+.modal-danger__body {
+  margin-top: 24px;
+}
+
+.modal-danger__body p {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #6b7280;
+}
+
+.modal-danger__asset {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-weight: 600;
+  background: #f3f4f6;
+  color: #111827;
+  padding: 2px 6px;
+  border-radius: 6px;
+  margin: 0 4px;
+}
+
+.modal-danger__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+  margin-top: 32px;
+  margin-right: -4px;
+  margin-bottom: -4px;
 }
 
 .modal h2 {
@@ -639,5 +717,9 @@ input:checked + .slider:before {
 
   .asset-list {
     grid-template-columns: 1fr;
+  }
+
+  .modal-danger {
+    width: 400px;
   }
 }
