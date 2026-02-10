@@ -12,6 +12,8 @@ const loading = ref(false)
 const currentView = ref('dashboard')  // dashboard, assets, plugins, add
 const searchQuery = ref('')
 const showAddModal = ref(false)
+const showDeleteModal = ref(false)
+const pendingDeleteAsset = ref(null)
 const selectedTags = ref([])
 const tagInput = ref('')
 const tagInputFocused = ref(false)
@@ -131,15 +133,27 @@ async function createAsset() {
   }
 }
 
-async function deleteAsset(id) {
-  if (!invoke) return
-  if (!confirm('确定要删除这个资产吗？')) return
+function requestDeleteAsset(asset) {
+  pendingDeleteAsset.value = asset
+  showDeleteModal.value = true
+}
+
+async function confirmDeleteAsset() {
+  if (!invoke || !pendingDeleteAsset.value) return
   try {
-    await invoke('delete_asset', { id })
+    await invoke('delete_asset', { id: pendingDeleteAsset.value.id })
     await loadAssets()
   } catch (e) {
     console.error('Failed to delete asset:', e)
+  } finally {
+    showDeleteModal.value = false
+    pendingDeleteAsset.value = null
   }
+}
+
+function cancelDeleteAsset() {
+  showDeleteModal.value = false
+  pendingDeleteAsset.value = null
 }
 
 async function togglePlugin(name, enabled) {
@@ -351,7 +365,7 @@ onMounted(() => {
               <span v-for="tag in asset.tags" :key="tag" class="tag">{{ tag }}</span>
             </div>
             <div class="asset-actions">
-              <button class="btn btn-danger btn-sm" @click="deleteAsset(asset.id)">删除</button>
+              <button class="btn btn-danger btn-sm" @click="requestDeleteAsset(asset)">删除</button>
             </div>
           </div>
         </div>
@@ -461,6 +475,22 @@ onMounted(() => {
             <button type="submit" class="btn btn-primary">创建</button>
           </div>
         </form>
+      </div>
+    </div>
+
+    <!-- 删除确认模态框 -->
+    <div v-if="showDeleteModal" class="modal-overlay" @click.self="cancelDeleteAsset">
+      <div class="modal">
+        <h2>确认删除</h2>
+        <p>
+          即将删除资产
+          <strong v-if="pendingDeleteAsset">{{ pendingDeleteAsset.name }}</strong>
+          ，此操作不可恢复。
+        </p>
+        <div class="form-actions">
+          <button type="button" class="btn" @click="cancelDeleteAsset">取消</button>
+          <button type="button" class="btn btn-danger" @click="confirmDeleteAsset">确认删除</button>
+        </div>
       </div>
     </div>
   </div>
