@@ -14,6 +14,7 @@ const searchQuery = ref('')
 const showAddModal = ref(false)
 const showDeleteModal = ref(false)
 const pendingDeleteAsset = ref(null)
+const addMode = ref('asset')
 const selectedTags = ref([])
 const tagInput = ref('')
 const tagInputFocused = ref(false)
@@ -42,6 +43,15 @@ const assetTypes = {
   vehicle: '车辆',
   crypto: '加密货币',
   precious_metal: '贵金属',
+  other: '其他'
+}
+
+const liabilityTypes = {
+  huabei: '花呗',
+  credit_card: '信用卡',
+  car_loan: '车贷',
+  mortgage: '房贷',
+  bank_loan: '银行贷款',
   other: '其他'
 }
 
@@ -110,11 +120,15 @@ async function loadPlugins() {
 async function createAsset() {
   if (!invoke || !newAsset.value.name) return
   try {
+    const rawValue = parseFloat(newAsset.value.value) || 0
+    const normalizedValue = addMode.value === 'liability'
+      ? Math.min(rawValue, 0)
+      : Math.max(rawValue, 0)
     await invoke('create_asset', {
       request: {
         name: newAsset.value.name,
         asset_type: newAsset.value.asset_type,
-        value: parseFloat(newAsset.value.value) || 0,
+        value: normalizedValue,
         currency: newAsset.value.currency,
         description: newAsset.value.description || null,
         tags: selectedTags.value.length > 0 ? selectedTags.value : null
@@ -130,6 +144,17 @@ async function createAsset() {
   } catch (e) {
     console.error('Failed to create asset:', e)
     alert('创建失败: ' + e)
+  }
+}
+
+function openAddModal(mode) {
+  addMode.value = mode
+  showAddModal.value = true
+  newAsset.value.value = 0
+  if (mode === 'liability') {
+    newAsset.value.asset_type = 'huabei'
+  } else {
+    newAsset.value.asset_type = 'cash'
   }
 }
 
@@ -340,10 +365,11 @@ onMounted(() => {
             <input 
               v-model="searchQuery" 
               type="text" 
-              placeholder="搜索资产..." 
+              placeholder="搜索..." 
               class="search-input"
             />
-            <button class="btn btn-primary" @click="showAddModal = true">+ 添加资产</button>
+            <button class="btn btn-primary" @click="openAddModal('asset')">+ 添加资产</button>
+            <button class="btn btn-liability" @click="openAddModal('liability')">+ 添加负债</button>
           </div>
         </div>
 
@@ -402,25 +428,36 @@ onMounted(() => {
       </div>
     </main>
 
-    <!-- 添加资产模态框 -->
+    <!-- 添加资产/负债模态框 -->
     <div v-if="showAddModal" class="modal-overlay" @click.self="showAddModal = false">
       <div class="modal">
-        <h2>添加资产</h2>
+        <h2>{{ addMode === 'liability' ? '添加负债' : '添加资产' }}</h2>
         <form @submit.prevent="createAsset">
           <div class="form-group">
-            <label>资产名称 *</label>
-            <input v-model="newAsset.name" type="text" required placeholder="如：招商银行储蓄" />
+            <label>{{ addMode === 'liability' ? '负债名称 *' : '资产名称 *' }}</label>
+            <input
+              v-model="newAsset.name"
+              type="text"
+              required
+              :placeholder="addMode === 'liability' ? '如：信用卡账单' : '如：招商银行储蓄'"
+            />
           </div>
           
           <div class="form-row">
             <div class="form-group">
-              <label>资产类型</label>
+              <label>{{ addMode === 'liability' ? '负债类型' : '资产类型' }}</label>
               <select v-model="newAsset.asset_type">
-                <option v-for="(name, key) in assetTypes" :key="key" :value="key">{{ name }}</option>
+                <option
+                  v-for="(name, key) in (addMode === 'liability' ? liabilityTypes : assetTypes)"
+                  :key="key"
+                  :value="key"
+                >
+                  {{ name }}
+                </option>
               </select>
             </div>
             <div class="form-group">
-              <label>货币</label>
+              <label>{{ addMode === 'liability' ? '币种' : '货币' }}</label>
               <select v-model="newAsset.currency">
                 <option value="CNY">人民币 (CNY)</option>
                 <option value="USD">美元 (USD)</option>
@@ -431,12 +468,19 @@ onMounted(() => {
           </div>
           
           <div class="form-group">
-            <label>价值</label>
-            <input v-model.number="newAsset.value" type="number" step="0.01" min="0" placeholder="0.00" />
+            <label>{{ addMode === 'liability' ? '负债金额' : '价值' }}</label>
+            <input
+              v-model.number="newAsset.value"
+              type="number"
+              step="0.01"
+              :min="addMode === 'liability' ? undefined : 0"
+              :max="addMode === 'liability' ? 0 : undefined"
+              :placeholder="addMode === 'liability' ? '0.00 或负数' : '0.00'"
+            />
           </div>
           
           <div class="form-group">
-            <label>描述</label>
+            <label>{{ addMode === 'liability' ? '备注' : '描述' }}</label>
             <textarea v-model="newAsset.description" placeholder="可选描述..."></textarea>
           </div>
           
@@ -472,7 +516,7 @@ onMounted(() => {
           
           <div class="form-actions">
             <button type="button" class="btn" @click="showAddModal = false">取消</button>
-            <button type="submit" class="btn btn-primary">创建</button>
+            <button type="submit" class="btn" :class="addMode === 'liability' ? 'btn-liability' : 'btn-primary'">创建</button>
           </div>
         </form>
       </div>

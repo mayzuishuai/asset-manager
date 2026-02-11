@@ -10,6 +10,8 @@
   --primary: #4f46e5;
   --primary-light: #6366f1;
   --primary-dark: #4338ca;
+  --liability: #0f766e;
+  --liability-dark: #0f5f59;
   --success: #10b981;
   --danger: #dc2626;
   --danger-dark: #b91c1c;
@@ -236,6 +238,15 @@ h3 {
 
 .btn-primary:hover {
   background: var(--primary-dark);
+}
+
+.btn-liability {
+  background: var(--liability);
+  color: white;
+}
+
+.btn-liability:hover {
+  background: var(--liability-dark);
 }
 
 .btn-danger {
