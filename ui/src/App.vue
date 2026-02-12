@@ -313,17 +313,17 @@ onMounted(() => {
     <!-- 侧边栏 -->
     <aside class="sidebar">
       <div class="logo">
-        <h1>💰 资产管理器</h1>
+        <h1>资产管理器</h1>
       </div>
       <nav>
         <a href="#" :class="{ active: currentView === 'dashboard' }" @click.prevent="currentView = 'dashboard'">
-          📊 仪表盘
+          仪表盘
         </a>
         <a href="#" :class="{ active: currentView === 'assets' }" @click.prevent="currentView = 'assets'">
-          📁 资产列表
+          资产与负债
         </a>
         <a href="#" :class="{ active: currentView === 'plugins' }" @click.prevent="currentView = 'plugins'">
-          🔌 插件管理
+          插件管理
         </a>
       </nav>
     </aside>
@@ -357,10 +357,10 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- 资产列表 -->
+      <!-- 资产与负债 -->
       <div v-if="currentView === 'assets'" class="assets-view">
         <div class="header-bar">
-          <h2>资产列表</h2>
+          <h2>资产与负债</h2>
           <div class="actions">
             <input 
               v-model="searchQuery" 
@@ -380,18 +380,30 @@ onMounted(() => {
         </div>
         
         <div v-else class="asset-list">
-          <div v-for="asset in filteredAssets" :key="asset.id" class="asset-card">
-            <div class="asset-header">
-              <h3>{{ asset.name }}</h3>
-              <span class="asset-type">{{ getAssetTypeName(asset.asset_type) }}</span>
-            </div>
-            <div class="asset-value">{{ formatValue(asset.value, 'CNY') }}</div>
-            <p v-if="asset.description" class="asset-desc">{{ asset.description }}</p>
-            <div v-if="asset.tags && asset.tags.length" class="asset-tags">
-              <span v-for="tag in asset.tags" :key="tag" class="tag">{{ tag }}</span>
+          <div
+            v-for="asset in filteredAssets"
+            :key="asset.id"
+            class="asset-card"
+            :class="{ liability: asset.value < 0 }"
+          >
+            <div class="asset-body">
+              <div class="asset-header">
+                <h3>{{ asset.name }}</h3>
+                <span class="asset-type">{{ getAssetTypeName(asset.asset_type) }}</span>
+              </div>
+              <div class="asset-value">{{ formatValue(asset.value, 'CNY') }}</div>
+              <p v-if="asset.description" class="asset-desc">{{ asset.description }}</p>
+              <div v-if="asset.tags && asset.tags.length" class="asset-tags">
+                <span v-for="tag in asset.tags" :key="tag" class="tag">{{ tag }}</span>
+              </div>
             </div>
             <div class="asset-actions">
-              <button class="btn btn-danger btn-sm" @click="requestDeleteAsset(asset)">删除</button>
+              <button class="delete-action" type="button" @click="requestDeleteAsset(asset)">
+                <svg class="delete-icon" viewBox="0 0 22 22" aria-hidden="true">
+                  <path d="M9 3h6l1 2h4v2H4V5h4l1-2zm1 6h2v9h-2V9zm4 0h2v9h-2V9zM7 9h2v9H7V9z" />
+                </svg>
+                删除
+              </button>
             </div>
           </div>
         </div>

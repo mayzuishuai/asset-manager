@@ -29,7 +29,7 @@ asset-manager/
 │   └── stats_helper/   # 示例插件：资产统计助手
 └── ui/                  # Vue 3 前端界面
     └── src/
-        ├── App.vue      # 主应用（仪表盘/资产列表/插件管理）
+        ├── App.vue      # 主应用（仪表盘/资产与负债插件管理）
         ├── main.js      # 入口文件
         └── style.css    # 全局样式
 ```

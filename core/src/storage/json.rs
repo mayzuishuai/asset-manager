@@ -12,7 +12,7 @@ use uuid::Uuid;
 /// JSON 存储的数据结构
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct JsonStore {
-    /// 资产列表
+    /// 资产与负债
     pub assets: Vec<Asset>,
     /// 交易记录
     pub transactions: Vec<AssetTransaction>,

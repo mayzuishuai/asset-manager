@@ -279,9 +279,12 @@ h3 {
 .asset-card {
   background: var(--card-bg);
   border-radius: var(--radius-lg);
-  padding: 20px;
+  padding: 20px 20px 16px;
   box-shadow: var(--shadow);
   transition: transform 0.2s, box-shadow 0.2s;
+  border-top: 2px solid #2f54eb;
+  display: flex;
+  flex-direction: column;
 }
 
 .asset-card:hover {
@@ -312,8 +315,12 @@ h3 {
 .asset-value {
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--primary);
+  color: #434343;
   margin-bottom: 12px;
+}
+
+.asset-card.liability {
+  border-top: 2px solid #f5222d;
 }
 
 .asset-desc {
@@ -337,12 +344,47 @@ h3 {
   border-radius: 4px;
 }
 
+.asset-body {
+  flex-grow: 1;
+}
+
 .asset-actions {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
   padding-top: 12px;
   border-top: 1px solid var(--border);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+
+.asset-card:hover .asset-actions,
+.asset-card:focus-within .asset-actions {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.delete-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--text-light);
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.delete-action:hover {
+  color: #475569;
+}
+
+.delete-icon {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
 }
 
 /* Plugin List */
