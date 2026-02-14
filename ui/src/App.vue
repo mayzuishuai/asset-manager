@@ -25,9 +25,9 @@ let tagBlurTimer = null
 // 新资产表单
 const newAsset = ref({
   name: '',
-  asset_type: 'cash',
-  value: 0,
-  currency: 'CNY',
+  asset_type: '',
+  value: null,
+  currency: '',
   description: '',
   tags: []
 })
@@ -136,7 +136,7 @@ async function createAsset() {
     })
     
     // 重置表单
-    newAsset.value = { name: '', asset_type: 'cash', value: 0, currency: 'CNY', description: '', tags: [] }
+    newAsset.value = { name: '', asset_type: '', value: null, currency: '', description: '', tags: [] }
     selectedTags.value = []
     tagInput.value = ''
     showAddModal.value = false
@@ -150,12 +150,9 @@ async function createAsset() {
 function openAddModal(mode) {
   addMode.value = mode
   showAddModal.value = true
-  newAsset.value.value = 0
-  if (mode === 'liability') {
-    newAsset.value.asset_type = 'huabei'
-  } else {
-    newAsset.value.asset_type = 'cash'
-  }
+  newAsset.value.value = null
+  newAsset.value.asset_type = ''
+  newAsset.value.currency = ''
 }
 
 function requestDeleteAsset(asset) {
@@ -459,6 +456,7 @@ onMounted(() => {
             <div class="form-group">
               <label>{{ addMode === 'liability' ? '负债类型' : '资产类型' }}</label>
               <select v-model="newAsset.asset_type">
+                <option value="" disabled>请选择类型</option>
                 <option
                   v-for="(name, key) in (addMode === 'liability' ? liabilityTypes : assetTypes)"
                   :key="key"
@@ -471,6 +469,7 @@ onMounted(() => {
             <div class="form-group">
               <label>{{ addMode === 'liability' ? '币种' : '货币' }}</label>
               <select v-model="newAsset.currency">
+                <option value="" disabled>请选择币种</option>
                 <option value="CNY">人民币 (CNY)</option>
                 <option value="USD">美元 (USD)</option>
                 <option value="EUR">欧元 (EUR)</option>
@@ -485,9 +484,9 @@ onMounted(() => {
               v-model.number="newAsset.value"
               type="number"
               step="0.01"
-              :min="addMode === 'liability' ? undefined : 0"
-              :max="addMode === 'liability' ? 0 : undefined"
-              :placeholder="addMode === 'liability' ? '0.00 或负数' : '0.00'"
+              :min="addMode === 'liability' ? -1000000000000.00 : 0"
+              :max="addMode === 'liability' ? 0 : 1000000000000.00"
+              :placeholder="addMode === 'liability' ? '-0.00' : '0.00'"
             />
           </div>
           
