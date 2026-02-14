@@ -120,10 +120,12 @@ async function loadPlugins() {
 async function createAsset() {
   if (!invoke || !newAsset.value.name) return
   try {
-    const rawValue = parseFloat(newAsset.value.value) || 0
+    const fallbackValue = addMode.value === 'liability' ? -0.01 : 0.01
+    const rawValue = Number(newAsset.value.value)
+    const safeValue = Number.isFinite(rawValue) ? rawValue : fallbackValue
     const normalizedValue = addMode.value === 'liability'
-      ? Math.min(rawValue, 0)
-      : Math.max(rawValue, 0)
+      ? Math.min(safeValue, -0.01)
+      : Math.max(safeValue, 0.01)
     await invoke('create_asset', {
       request: {
         name: newAsset.value.name,
@@ -150,7 +152,7 @@ async function createAsset() {
 function openAddModal(mode) {
   addMode.value = mode
   showAddModal.value = true
-  newAsset.value.value = null
+  newAsset.value.value = mode === 'liability' ? -0.01 : 0.01
   newAsset.value.asset_type = ''
   newAsset.value.currency = ''
 }
@@ -373,7 +375,7 @@ onMounted(() => {
         <div v-if="loading" class="loading">加载中...</div>
         
         <div v-else-if="filteredAssets.length === 0" class="empty">
-          暂无资产记录
+          暂无资产与负债记录
         </div>
         
         <div v-else class="asset-list">
@@ -448,7 +450,7 @@ onMounted(() => {
               v-model="newAsset.name"
               type="text"
               required
-              :placeholder="addMode === 'liability' ? '如：信用卡账单' : '如：招商银行储蓄'"
+              :placeholder="addMode === 'liability' ? '如：**信用卡' : '如：**银行储蓄'"
             />
           </div>
           
@@ -479,14 +481,15 @@ onMounted(() => {
           </div>
           
           <div class="form-group">
-            <label>{{ addMode === 'liability' ? '负债金额' : '价值' }}</label>
+            <label>价值 *</label>
             <input
               v-model.number="newAsset.value"
               type="number"
+              required
               step="0.01"
-              :min="addMode === 'liability' ? -1000000000000.00 : 0"
-              :max="addMode === 'liability' ? 0 : 1000000000000.00"
-              :placeholder="addMode === 'liability' ? '-0.00' : '0.00'"
+              :min="addMode === 'liability' ? -1000000000000.00 : 0.01"
+              :max="addMode === 'liability' ? -0.01 : 1000000000000.00"
+              :placeholder="addMode === 'liability' ? '-0.01' : '0.01'"
             />
           </div>
           
