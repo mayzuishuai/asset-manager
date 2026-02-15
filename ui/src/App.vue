@@ -32,8 +32,8 @@ const newAsset = ref({
   tags: []
 })
 
-// 资产类型映射
-const assetTypes = {
+// 资产类型标签
+const ASSET_TYPE_LABELS = {
   cash: '现金',
   bank_deposit: '银行存款',
   stock: '股票',
@@ -46,7 +46,8 @@ const assetTypes = {
   other: '其他'
 }
 
-const liabilityTypes = {
+// 负债类型标签
+const LIABILITY_TYPE_LABELS = {
   huabei: '花呗',
   credit_card: '信用卡',
   car_loan: '车贷',
@@ -55,15 +56,23 @@ const liabilityTypes = {
   other: '其他'
 }
 
-// 货币符号
-const currencySymbols = {
-  CNY: '¥',
-  USD: '$',
-  EUR: '€',
-  GBP: '£',
-  JPY: '¥',
-  HKD: 'HK$'
+// 币种定义
+const CURRENCY_DEFINITIONS = {
+  CNY: { code: 'CNY', label: '人民币 (CNY)', symbol: '¥' },
+  USD: { code: 'USD', label: '美元 (USD)', symbol: '$' },
+  EUR: { code: 'EUR', label: '欧元 (EUR)', symbol: '€' },
+  HKD: { code: 'HKD', label: '港币 (HKD)', symbol: 'HK$' }
 }
+
+const CURRENCY_OPTIONS = Object.values(CURRENCY_DEFINITIONS).map(item => ({
+  code: item.code,
+  label: item.label
+}))
+
+const CURRENCY_SYMBOL_BY_CODE = Object.values(CURRENCY_DEFINITIONS).reduce((result, item) => {
+  result[item.code] = item.symbol
+  return result
+}, {})
 
 // 计算属性
 const filteredAssets = computed(() => {
@@ -118,19 +127,13 @@ async function loadPlugins() {
 }
 
 async function createAsset() {
-  if (!invoke || !newAsset.value.name) return
+  if (!invoke || !newAsset.value.name || !newAsset.value.asset_type || !newAsset.value.currency) return
   try {
-    const fallbackValue = addMode.value === 'liability' ? -0.01 : 0.01
-    const rawValue = Number(newAsset.value.value)
-    const safeValue = Number.isFinite(rawValue) ? rawValue : fallbackValue
-    const normalizedValue = addMode.value === 'liability'
-      ? Math.min(safeValue, -0.01)
-      : Math.max(safeValue, 0.01)
     await invoke('create_asset', {
       request: {
         name: newAsset.value.name,
         asset_type: newAsset.value.asset_type,
-        value: normalizedValue,
+        value: newAsset.value.value,
         currency: newAsset.value.currency,
         description: newAsset.value.description || null,
         tags: selectedTags.value.length > 0 ? selectedTags.value : null
@@ -152,7 +155,7 @@ async function createAsset() {
 function openAddModal(mode) {
   addMode.value = mode
   showAddModal.value = true
-  newAsset.value.value = mode === 'liability' ? -0.01 : 0.01
+  newAsset.value.value = null
   newAsset.value.asset_type = ''
   newAsset.value.currency = ''
 }
@@ -191,7 +194,7 @@ async function togglePlugin(name, enabled) {
 }
 
 function formatValue(value, currency) {
-  const symbol = currencySymbols[currency] || currencySymbols['CNY']
+  const symbol = CURRENCY_SYMBOL_BY_CODE[currency] || CURRENCY_SYMBOL_BY_CODE['CNY']
   return `${symbol}${value.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
@@ -200,7 +203,7 @@ function getAssetTypeName(type) {
     return type.Other
   }
   const key = typeof type === 'string' ? type.toLowerCase() : 'other'
-  return assetTypes[key] || type
+  return ASSET_TYPE_LABELS[key] || type
 }
 
 function getAssetTypeKey(type) {
@@ -348,7 +351,7 @@ onMounted(() => {
           <h3>按类型分布</h3>
           <div class="type-list">
             <div v-for="(value, type) in summary.by_type" :key="type" class="type-item">
-              <span class="type-name">{{ assetTypes[type] || type }}</span>
+              <span class="type-name">{{ ASSET_TYPE_LABELS[type] || type }}</span>
               <span class="type-value">{{ formatValue(value, 'CNY') }}</span>
               <div class="type-bar" :style="{ width: (value / summary.total_value * 100) + '%' }"></div>
             </div>
@@ -456,11 +459,15 @@ onMounted(() => {
           
           <div class="form-row">
             <div class="form-group">
-              <label>{{ addMode === 'liability' ? '负债类型' : '资产类型' }}</label>
-              <select v-model="newAsset.asset_type">
-                <option value="" disabled>请选择类型</option>
+              <label>{{ addMode === 'liability' ? '负债类型 *' : '资产类型 *' }}</label>
+              <select 
+                v-model="newAsset.asset_type"
+                :class="{ 'select-placeholder': !newAsset.asset_type }"
+                required
+              >
+                <option value="" disabled hidden>请选择类型</option>
                 <option
-                  v-for="(name, key) in (addMode === 'liability' ? liabilityTypes : assetTypes)"
+                  v-for="(name, key) in (addMode === 'liability' ? LIABILITY_TYPE_LABELS : ASSET_TYPE_LABELS)"
                   :key="key"
                   :value="key"
                 >
@@ -469,13 +476,20 @@ onMounted(() => {
               </select>
             </div>
             <div class="form-group">
-              <label>{{ addMode === 'liability' ? '币种' : '货币' }}</label>
-              <select v-model="newAsset.currency">
-                <option value="" disabled>请选择币种</option>
-                <option value="CNY">人民币 (CNY)</option>
-                <option value="USD">美元 (USD)</option>
-                <option value="EUR">欧元 (EUR)</option>
-                <option value="HKD">港币 (HKD)</option>
+              <label>币种 *</label>
+              <select
+                v-model="newAsset.currency"
+                :class="{ 'select-placeholder': !newAsset.currency }"
+                required
+              >
+                <option value="" disabled hidden>请选择币种</option>
+                <option
+                  v-for="currency in CURRENCY_OPTIONS"
+                  :key="currency.code"
+                  :value="currency.code"
+                >
+                  {{ currency.label }}
+                </option>
               </select>
             </div>
           </div>
